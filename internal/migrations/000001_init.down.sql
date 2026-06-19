@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS subscriptions;
+DROP EXTENSION IF EXISTS "pgcrypto";

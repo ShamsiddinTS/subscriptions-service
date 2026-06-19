@@ -1,0 +1,283 @@
+basePath: /api
+definitions:
+  dto.CreateSubscriptionRequest:
+    properties:
+      end_date:
+        description: Дата окончания подписки в формате MM-YYYY (опционально)
+        example: 07-2026
+        type: string
+      price:
+        description: Стоимость месячной подписки в рублях
+        example: 400
+        type: integer
+      service_name:
+        description: Название сервиса подписки (Netflix, Yandex Plus, ChatGPT Plus)
+        example: Yandex Plus
+        type: string
+      start_date:
+        description: Дата начала подписки в формате MM-YYYY
+        example: 07-2025
+        type: string
+      user_id:
+        description: UUID пользователя
+        example: 60601fee-2bf1-4721-ae6f-7636e79a0cba
+        type: string
+    type: object
+  dto.TotalCostResponse:
+    properties:
+      total_cost:
+        description: '@Success 200 {object} dto.TotalCostResponse'
+        example: 5200
+        type: integer
+    type: object
+  dto.UpdateSubscriptionRequest:
+    properties:
+      end_date:
+        description: Дата окончания подписки в формате MM-YYYY (опционально)
+        example: 07-2026
+        type: string
+      price:
+        description: Стоимость месячной подписки в рублях
+        example: 400
+        type: integer
+      service_name:
+        description: Название сервиса подписки (Netflix, Yandex Plus, ChatGPT Plus)
+        example: Yandex Plus
+        type: string
+    type: object
+  model.Subscription:
+    properties:
+      created_at:
+        description: Дата создания записи
+        type: string
+      end_date:
+        description: Дата окончания подписки (если подписка завершена)
+        type: string
+      id:
+        description: Уникальный ID подписки
+        type: string
+      price:
+        description: Стоимость подписки за месяц (рубли)
+        type: integer
+      service_name:
+        description: Название сервиса
+        type: string
+      start_date:
+        description: Дата начала подписки
+        type: string
+      updated_at:
+        description: Дата последнего обновления
+        type: string
+      user_id:
+        description: UUID пользователя
+        type: string
+    type: object
+  response.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: |-
+    REST API для управления онлайн-подписками пользователей.
+    Поддерживает CRUDL-операции и расчет суммарной стоимости подписок за выбранный период.
+  title: API сервиса управления подписками
+  version: "1.0"
+paths:
+  /subscriptions:
+    get:
+      description: Возвращает список всех сохранённых подписок
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Subscription'
+            type: array
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Получить список подписок
+      tags:
+      - subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Создает новую запись о подписке пользователя на онлайн-сервис
+      parameters:
+      - description: Данные новой подписки
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Subscription'
+        "400":
+          description: Некорректное тело запроса или неверные данные
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Создать новую подписку
+      tags:
+      - subscriptions
+  /subscriptions/{id}:
+    delete:
+      description: Удаляет запись о подписке по её UUID
+      parameters:
+      - description: UUID подписки
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Подписка успешно удалена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Некорректный UUID
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Подписка не найдена
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Удалить подписку
+      tags:
+      - subscriptions
+    get:
+      description: Возвращает информацию о подписке по её UUID
+      parameters:
+      - description: UUID подписки
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Subscription'
+        "400":
+          description: Некорректный UUID
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Подписка не найдена
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Получить подписку по ID
+      tags:
+      - subscriptions
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные существующей подписки по её UUID
+      parameters:
+      - description: UUID подписки
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Данные для обновления подписки
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Subscription'
+        "400":
+          description: Некорректный запрос или UUID
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Подписка не найдена
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Обновить подписку
+      tags:
+      - subscriptions
+  /subscriptions/total:
+    get:
+      description: |-
+        Возвращает суммарную стоимость подписок за выбранный период.
+
+        Поддерживается 2 режима:
+        1. Общий расчет — передаются только from и to
+        2. Расчет с фильтрацией — дополнительно можно передать user_id и/или service_name
+      parameters:
+      - description: 'Начало периода (MM-YYYY), пример: 07-2025'
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: 'Конец периода (MM-YYYY), пример: 07-2026'
+        in: query
+        name: to
+        required: true
+        type: string
+      - description: UUID пользователя для фильтрации
+        in: query
+        name: user_id
+        type: string
+      - description: 'Название сервиса для фильтрации (например: Yandex Plus)'
+        in: query
+        name: service_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TotalCostResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Подсчитать суммарную стоимость подписок
+      tags:
+      - subscriptions
+swagger: "2.0"
